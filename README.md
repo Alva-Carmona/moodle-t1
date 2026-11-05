@@ -56,5 +56,37 @@ report/log:view - Permitir - Acceso a informes de logs
 o	mod/forum:viewdiscussion → Cambia a "Prevenir"
 5.	Guarda los cambios
 
+
+- Consulta SQL para comprobar el rol Revisor Calidad
+
+SELECT
+    u.id,
+    u.username,
+    u.firstname,
+    u.lastname,
+    u.email,
+    r.shortname AS rol_short,
+    r.name AS rol_nombre,
+    CASE ctx.contextlevel
+        WHEN 10 THEN 'Sistema'
+        WHEN 40 THEN 'Categoria'
+        WHEN 50 THEN 'Curso'
+        WHEN 70 THEN 'Actividad'
+        ELSE 'Otro'
+    END AS contexto,
+    ctx.path AS contextpath
+FROM mdl_user u
+JOIN mdl_role_assignments ra ON u.id = ra.userid
+JOIN mdl_role r ON ra.roleid = r.id
+JOIN mdl_context ctx ON ra.contextid = ctx.id
+WHERE r.shortname = 'revisor_calidad'
+ORDER BY ctx.contextlevel, u.lastname;
+
+
+ id |    username    | firstname | lastname |           email           |    rol_short    |     rol_nombre     | contexto  | contextpath
+----+----------------+-----------+----------+---------------------------+-----------------+--------------------+-----------+-------------
+  3 | revisorcalidad | Revisor   | Calidad  | revisorcalidad@sinmail.es | revisor_calidad | Revisor de Calidad | Categoria | /1/3
+(1 row)
+
 Explicación: La sobrescritura a nivel de curso anula lo definido a nivel de categoría. Aunque el rol permite ver foros por defecto, en este curso concreto el revisor NO podrá acceder a ellos. Esto es útil para casos específicos donde necesitas restringir aún más el acceso
 
